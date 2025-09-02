@@ -1,0 +1,67 @@
+Last login: Tue Sep  2 12:20:37 on ttys000
+admin@MacBook-Pro-Ulik ~ % psql -h localhost -U postgres -p 5432
+Пароль пользователя postgres:
+psql (17.6 (Homebrew))
+Введите "help", чтобы получить справку.
+
+postgres=# \l
+                                                         Список баз данных
+       Имя        | Владелец | Кодировка | Провайдер локали | LC_COLLATE | LC_CTYPE | Локаль | Правила ICU |     Права доступа
+------------------+----------+-----------+------------------+------------+----------+--------+-------------+-----------------------
+ postgres         | postgres | UTF8      | libc             | C          | C        |        |             | =Tc/postgres         +
+                  |          |           |                  |            |          |        |             | postgres=CTc/postgres+
+                  |          |           |                  |            |          |        |             | ulik=CTc/postgres    +
+                  |          |           |                  |            |          |        |             | admin=CTc/postgres
+ template0        | postgres | UTF8      | libc             | C          | C        |        |             | =c/postgres          +
+                  |          |           |                  |            |          |        |             | postgres=CTc/postgres
+ template1        | postgres | UTF8      | libc             | C          | C        |        |             | =c/postgres          +
+                  |          |           |                  |            |          |        |             | postgres=CTc/postgres
+ template_postgis | postgres | UTF8      | libc             | C          | C        |        |             |
+(4 строки)
+
+postgres=# \c postgres
+Вы подключены к базе данных "postgres" как пользователь "postgres".
+postgres=# \dt
+            Список отношений
+ Схема  |   Имя    |   Тип   | Владелец
+--------+----------+---------+----------
+ public | students | таблица | postgres
+(1 строка)
+
+postgres=# CREATE TABLE students (
+id SERIAL PRIMARY KEY,
+name VARCHAR(100),
+age INT
+);
+postgres=# INSERT INTO students (name, age) VALUES (Alex, 25), (Ulik, 21)
+postgres-# SELECT * FROM students;
+ERROR:  syntax error at or near "SELECT"
+СТРОКА 2: SELECT * FROM students;
+          ^
+postgres=# INSERT INTO students (name, age) VALUES (Alex, 25), (Ulik, 21);
+ERROR:  column "alex" does not exist
+СТРОКА 1: INSERT INTO students (name, age) VALUES (Alex, 25), (Ulik, 2...
+                                                   ^
+ПОДСКАЗКА:  Perhaps you meant to reference the column "students.age".
+postgres=# INSERT INTO students (name, age) VALUES (Alice, 25), (Bob, 21);
+ERROR:  column "alice" does not exist
+СТРОКА 1: INSERT INTO students (name, age) VALUES (Alice, 25), (Bob, 2...
+                                                   ^
+postgres=# INSERT INTO students (name, age) VALUES ('Alex', 25), ('Ulik', 21);
+INSERT 0 2
+postgres=# SELECT * FROM students;
+ id | name  | age
+----+-------+-----
+  1 | Alice |  21
+  2 | Bob   |  23
+  3 | Alex  |  25
+  4 | Ulik  |  21
+(4 строки)
+
+postgres=# DROP TABLE students
+postgres-# ;
+DROP TABLE
+postgres=# DROP TABLE students;
+ERROR:  table "students" does not exist
+postgres=# \q
+admin@MacBook-Pro-Ulik ~ %
