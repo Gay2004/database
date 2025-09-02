@@ -1,0 +1,57 @@
+# --- ОС ---
+# Windows
+Thumbs.db
+Desktop.ini
+$RECYCLE.BIN/
+
+# macOS
+.DS_Store
+.AppleDouble
+.LSOverride
+
+# Linux
+*~
+
+# --- IDE / CLion ---
+.idea/
+cmake-build-*/
+CMakeCache.txt
+CMakeFiles/
+Testing/
+CTestTestfile.cmake
+Makefile
+cmake_install.cmake
+compile_commands.json
+
+# --- Компиляция / бинарники ---
+*.o
+*.obj
+*.lo
+*.la
+*.al
+*.libs
+*.so
+*.so.*
+*.a
+*.dll
+*.dylib
+*.exe
+*.out
+*.app
+
+# --- Логи / временные ---
+*.log
+*.tmp
+*.swp
+
+# --- Raylib (ресурсы оставить, билды игнорить) ---
+# Библиотеки
+raylib/
+raylib-*/
+# Сборки
+*.rlib
+
+# --- Пользовательское ---
+/build/
+/bin/
+/lib/
