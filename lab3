@@ -1,0 +1,28 @@
+Last login: Tue Sep  2 12:23:15 on ttys000
+admin@MacBook-Pro-Ulik ~ % psql -h localhost -U postgres -p 5432
+Пароль пользователя postgres:
+psql (17.6 (Homebrew))
+Введите "help", чтобы получить справку.
+
+postgres=# CREATE DATABASE university
+postgres-# ;
+CREATE DATABASE
+postgres=# \q
+admin@MacBook-Pro-Ulik ~ % psql -d university -U postgres
+Пароль пользователя postgres:
+psql (17.6 (Homebrew))
+Введите "help", чтобы получить справку.
+
+university=# CREATE TABLE students (
+    name VARCHAR(50),
+    email VARCHAR(100),
+    faculty VARCHAR(50)
+);
+CREATE TABLE
+university=# SELECT * FROM students
+university-# ;
+ name | email | faculty
+------+-------+---------
+(0 строк)
+
+university=#
