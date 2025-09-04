@@ -1,0 +1,52 @@
+Last login: Wed Sep  3 11:48:47 on ttys000
+admin@MacBook-Pro-Ulik ~ % psql -d university -U postgres
+Пароль пользователя postgres:
+psql (17.6 (Homebrew))
+Введите "help", чтобы получить справку.
+
+university=# \c postgres
+Вы подключены к базе данных "postgres" как пользователь "postgres".
+postgres=# CREATE TABLE students (
+student_id SERIAL PRIMARY KEY,
+first_name VARCHAR(50) NOT NULL,
+last_name VARCHAR(50) NOT NULL,
+email VARCHAR(100) UNIQUE NOT NULL,
+faculty VARCHAR(100)
+);
+ERROR:  relation "students" already exists
+postgres=# DROP TABLE students;
+DROP TABLE
+postgres=# DROP TABLE IF EXISTS test_table;
+NOTICE:  table "test_table" does not exist, skipping
+DROP TABLE
+postgres=# ALTER TABLE students ADD COLUMN date_of_birth DATE;
+ERROR:  relation "students" does not exist
+postgres=# CREATE TABLE students (
+student_id SERIAL PRIMARY KEY,
+first_name VARCHAR(50) NOT NULL,
+last_name VARCHAR(50) NOT NULL,
+email VARCHAR(100) UNIQUE NOT NULL,
+faculty VARCHAR(100)
+);
+CREATE TABLE
+postgres=# ALTER TABLE students ADD COLUMN date_of_birth DATE;
+ALTER TABLE
+postgres=# ALTER TABLE students ADD COLUMN first_name TYPE TEXT;
+ERROR:  syntax error at or near "TEXT"
+СТРОКА 1: ALTER TABLE students ADD COLUMN first_name TYPE TEXT;
+                                                          ^
+postgres=# ALTER TABLE students ADD COLUMN first_name TYPE TEXT;
+ERROR:  syntax error at or near "TEXT"
+СТРОКА 1: ALTER TABLE students ADD COLUMN first_name TYPE TEXT;
+                                                          ^
+postgres=# ALTER TABLE students ADD COLUMN first_name TYPE TEXT;
+ERROR:  syntax error at or near "TEXT"
+СТРОКА 1: ALTER TABLE students ADD COLUMN first_name TYPE TEXT;
+                                                          ^
+postgres=# ALTER TABLE students ADD CONSTRAINT unique_student_email UNIQUE (email);
+ALTER TABLE
+postgres=# ALTER TABLE students RENAME COLUMN email TO email_address ;
+ALTER TABLE
+postgres=# ALTER TABLE students RENAME TO university_students;
+ALTER TABLE
+postgres=#
