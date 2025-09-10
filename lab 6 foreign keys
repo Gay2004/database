@@ -1,0 +1,559 @@
+Last login: Thu Sep  4 12:07:51 on ttys000
+admin@MacBook-Pro-Ulik ~ % psql -d university -U postgres
+Пароль пользователя postgres:
+psql (17.6 (Homebrew))
+Введите "help", чтобы получить справку.
+
+university=# \c postgres
+Вы подключены к базе данных "postgres" как пользователь "postgres".
+postgres=# \d
+                         Список отношений
+ Схема  |           Имя           |        Тип         | Владелец
+--------+-------------------------+--------------------+----------
+ public | students                | таблица            | postgres
+ public | students_student_id_seq | последовательность | postgres
+ public | university_students     | таблица            | postgres
+(3 строки)
+
+postgres=# -- Define primary key at column level
+CREATE TABLE students (
+student_id INTEGER PRIMARY KEY,
+name VARCHAR(100),
+email VARCHAR(150)
+);
+ERROR:  relation "students" already exists
+postgres=# DROP TABLE students
+postgres-# ;
+DROP TABLE
+postgres=# -- Define primary key at column level
+CREATE TABLE students (
+student_id INTEGER PRIMARY KEY,
+name VARCHAR(100),
+email VARCHAR(150)
+);
+CREATE TABLE
+postgres=# DROP TABLE students
+;
+DROP TABLE
+postgres=# -- Define primary key with a custom name
+CREATE TABLE students (
+student_id INTEGER,
+name VARCHAR(100),
+email VARCHAR(150),
+CONSTRAINT pk_students PRIMARY KEY (student_id)
+);
+CREATE TABLE
+postgres=# DROP TABLE students
+;
+DROP TABLE
+postgres=# \d
+                         Список отношений
+ Схема  |           Имя           |        Тип         | Владелец
+--------+-------------------------+--------------------+----------
+ public | students_student_id_seq | последовательность | postgres
+ public | university_students     | таблица            | postgres
+(2 строки)
+
+postgres=# CREATE TABLE students (
+student_id SERIAL PRIMARY KEY,
+name VARCHAR(100) NOT NULL,
+email VARCHAR(150) UNIQUE,
+faculty VARCHAR(50)
+);
+-- Insert sample data
+INSERT INTO students (name, email, faculty) VALUES
+(&#39;Alice Johnson&#39;, &#39;alice@alatoo.edu.kg&#39;, &#39;Computer Science&#39;),
+(&#39;Bob Smith&#39;, &#39;bob@alatoo.edu.kg&#39;, &#39;Mathematics&#39;),
+(&#39;Carol Davis&#39;, &#39;carol@alatoo.edu.kg&#39;, &#39;Computer Science&#39;);
+CREATE TABLE
+ERROR:  syntax error at or near ";"
+СТРОКА 2: (&#39;Alice Johnson&#39;, &#39;alice@alatoo.edu.kg&#39;, &#3...
+               ^
+postgres=# CREATE TABLE students (
+student_id SERIAL PRIMARY KEY,
+name VARCHAR(100) NOT NULL,
+email VARCHAR(150) UNIQUE,
+faculty VARCHAR(50)
+);
+-- Insert sample data
+INSERT INTO students (name, email, faculty) VALUES
+('Alice Johnson','alice@alatoo.edu.kg', 'Computer Science'),
+('Bob Smith','bob@alatoo.edu.kg','Mathematics'),
+('Carol Davis', 'carol@alatoo.edu.kg', 'Computer Science');
+ERROR:  relation "students" already exists
+INSERT 0 3
+postgres=# SELECT * FROM students
+postgres-# ;
+ student_id |     name      |        email        |     faculty
+------------+---------------+---------------------+------------------
+          1 | Alice Johnson | alice@alatoo.edu.kg | Computer Science
+          2 | Bob Smith     | bob@alatoo.edu.kg   | Mathematics
+          3 | Carol Davis   | carol@alatoo.edu.kg | Computer Science
+(3 строки)
+
+postgres=# CREATE TABLE course_enrollments (
+student_id INTEGER,
+course_id INTEGER,
+semester VARCHAR(20),
+enrollment_date DATE DEFAULT CURRENT_DATE,
+grade CHAR(2),
+PRIMARY KEY (student_id, course_id, semester)
+);
+CREATE TABLE
+postgres=# -- Insert sample data
+INSERT INTO course_enrollments (student_id, course_id, semester, grade)
+VALUES
+(1, 101,'2024-Spring','A'),
+(1, 102,'2024-Spring','B+'),
+(2, 101,'2024-Spring', 'A-'),
+(1, 101, '2024-Fall','A+');
+INSERT 0 4
+postgres=# \d
+                         Список отношений
+ Схема  |           Имя            |        Тип         | Владелец
+--------+--------------------------+--------------------+----------
+ public | course_enrollments       | таблица            | postgres
+ public | students                 | таблица            | postgres
+ public | students_student_id_seq  | последовательность | postgres
+ public | students_student_id_seq1 | последовательность | postgres
+ public | university_students      | таблица            | postgres
+(5 строк)
+
+postgres=# SELECT * FROM students
+;
+ student_id |     name      |        email        |     faculty
+------------+---------------+---------------------+------------------
+          1 | Alice Johnson | alice@alatoo.edu.kg | Computer Science
+          2 | Bob Smith     | bob@alatoo.edu.kg   | Mathematics
+          3 | Carol Davis   | carol@alatoo.edu.kg | Computer Science
+(3 строки)
+
+postgres=# SELECT * FROM course_enrollments;
+ student_id | course_id |  semester   | enrollment_date | grade
+------------+-----------+-------------+-----------------+-------
+          1 |       101 | 2024-Spring | 2025-09-04      | A
+          1 |       102 | 2024-Spring | 2025-09-04      | B+
+          2 |       101 | 2024-Spring | 2025-09-04      | A-
+          1 |       101 | 2024-Fall   | 2025-09-04      | A+
+(4 строки)
+
+postgres=# CREATE TABLE products (
+product_id SERIAL PRIMARY KEY,
+product_name VARCHAR(100) NOT NULL,
+price DECIMAL(10,2)
+);
+CREATE TABLE
+postgres=# CREATE TABLE transactions (
+transaction_id BIGSERIAL PRIMARY KEY, -- Can handle very large
+numbers
+amount DECIMAL(15,2),
+transaction_date TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+postgres(# );
+ERROR:  syntax error at or near "DECIMAL"
+СТРОКА 4: amount DECIMAL(15,2),
+                 ^
+postgres=# CREATE TABLE transactions (
+transaction_id BIGSERIAL PRIMARY KEY, -- Can handle very large
+numbers
+amount DECIMAL(15,2),
+transaction_date TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+
+);
+ERROR:  syntax error at or near "DECIMAL"
+СТРОКА 4: amount DECIMAL(15,2),
+                 ^
+postgres=# CREATE TABLE transactions (
+transaction_id BIGSERIAL PRIMARY KEY, -- Can handle very large
+numbers
+amount DECIMAL(15,2),
+transaction_date TIMESTAMP DEFAULT CURRENT_TIMESTAMP);
+ERROR:  syntax error at or near "DECIMAL"
+СТРОКА 4: amount DECIMAL(15,2),
+                 ^
+postgres=# CREATE TABLE transactions ( transaction_id BIGSERIAL PRIMARY KEY, amount DECIMAL (15,2), transaction_date TIMESTAMP DEFAULT CURRENT_TIMESTAMP);
+CREATE TABLE
+postgres=# \d
+                             Список отношений
+ Схема  |               Имя               |        Тип         | Владелец
+--------+---------------------------------+--------------------+----------
+ public | course_enrollments              | таблица            | postgres
+ public | products                        | таблица            | postgres
+ public | products_product_id_seq         | последовательность | postgres
+ public | students                        | таблица            | postgres
+ public | students_student_id_seq         | последовательность | postgres
+ public | students_student_id_seq1        | последовательность | postgres
+ public | transactions                    | таблица            | postgres
+ public | transactions_transaction_id_seq | последовательность | postgres
+ public | university_students             | таблица            | postgres
+(9 строк)
+
+postgres=# -- IDENTITY ALWAYS - PostgreSQL controls the value completely
+CREATE TABLE orders (
+order_id INTEGER GENERATED ALWAYS AS IDENTITY PRIMARY KEY,
+customer_name VARCHAR(100),
+order_date DATE DEFAULT CURRENT_DATE
+);
+-- IDENTITY BY DEFAULT - Allows manual insertion but auto-generates if
+not provided
+CREATE TABLE customers (
+customer_id INTEGER GENERATED BY DEFAULT AS IDENTITY PRIMARY KEY,
+customer_name VARCHAR(100),
+email VARCHAR(150)
+);
+-- You can still insert specific values with BY DEFAULT
+INSERT INTO customers (customer_id, customer_name, email)
+VALUES (1000,'VIP Customer','vip@example.com');
+CREATE TABLE
+ERROR:  syntax error at or near "not"
+СТРОКА 1: not provided
+          ^
+ERROR:  relation "customers" does not exist
+СТРОКА 1: INSERT INTO customers (customer_id, customer_name, email)
+                      ^
+postgres=# CREATE TABLE orders (
+order_id INTEGER GENERATED ALWAYS AS IDENTITY PRIMARY KEY,
+customer_name VARCHAR(100),
+order_date DATE DEFAULT CURRENT_DATE
+);
+ERROR:  relation "orders" already exists
+postgres=# SELECT * FROM orders;
+ order_id | customer_name | order_date
+----------+---------------+------------
+(0 строк)
+
+postgres=# CREATE TABLE customers (
+customer_id INTEGER GENERATED BY DEFAULT AS IDENTITY PRIMARY KEY,
+customer_name VARCHAR(100),
+email VARCHAR(150)
+);
+CREATE TABLE
+postgres=# INSERT INTO customers (customer_id, customer_name, email)
+VALUES (1000,'VIP Customer','vip@example.com');
+INSERT 0 1
+postgres=# CREATE TABLE departments (
+dept_id INTEGER PRIMARY KEY,
+dept_name VARCHAR(100)
+);
+CREATE TABLE
+postgres=# INSERT INTO departments VALUES (1,'Computer Science');
+INSERT INTO departments VALUES (1,'Mathematics'); -- ERROR: duplicate
+key value
+INSERT 0 1
+ERROR:  duplicate key value violates unique constraint "departments_pkey"
+ПОДРОБНОСТИ:  Key (dept_id)=(1) already exists.
+postgres-# SELECT * FROM dept_id;
+ERROR:  syntax error at or near "key"
+СТРОКА 1: key value
+          ^
+postgres=# \d
+                             Список отношений
+ Схема  |               Имя               |        Тип         | Владелец
+--------+---------------------------------+--------------------+----------
+ public | course_enrollments              | таблица            | postgres
+ public | customers                       | таблица            | postgres
+ public | customers_customer_id_seq       | последовательность | postgres
+ public | departments                     | таблица            | postgres
+ public | orders                          | таблица            | postgres
+ public | orders_order_id_seq             | последовательность | postgres
+ public | products                        | таблица            | postgres
+ public | products_product_id_seq         | последовательность | postgres
+ public | students                        | таблица            | postgres
+ public | students_student_id_seq         | последовательность | postgres
+ public | students_student_id_seq1        | последовательность | postgres
+ public | transactions                    | таблица            | postgres
+ public | transactions_transaction_id_seq | последовательность | postgres
+ public | university_students             | таблица            | postgres
+(14 строк)
+
+postgres=# DROP TABLE course_enrollments;
+DROP TABLE
+postgres=# DROP TABLE customers;
+DROP TABLE
+postgres=# DROP TABLE products;
+DROP TABLE
+postgres=# DROP TABLE students;
+DROP TABLE
+postgres=# DROP TABLE transactions;
+DROP TABLE
+postgres=# exit
+admin@MacBook-Pro-Ulik ~ % psql -d university -U postgres
+Пароль пользователя postgres:
+psql (17.6 (Homebrew))
+Введите "help", чтобы получить справку.
+
+university=# \d
+            Список отношений
+ Схема  |   Имя    |   Тип   | Владелец
+--------+----------+---------+----------
+ public | students | таблица | postgres
+(1 строка)
+
+university=# DROP TABLE university
+university-# ;
+ERROR:  table "university" does not exist
+university=# \c postgres
+Вы подключены к базе данных "postgres" как пользователь "postgres".
+postgres=# /d
+postgres-# \d
+                         Список отношений
+ Схема  |           Имя           |        Тип         | Владелец
+--------+-------------------------+--------------------+----------
+ public | departments             | таблица            | postgres
+ public | orders                  | таблица            | postgres
+ public | orders_order_id_seq     | последовательность | postgres
+ public | students_student_id_seq | последовательность | postgres
+ public | university_students     | таблица            | postgres
+(5 строк)
+
+postgres-#
+postgres-# DROP DATABASE university
+postgres-# ;
+ERROR:  syntax error at or near "/"
+СТРОКА 1: /d
+          ^
+postgres=# DROP DATABASE university;
+DROP DATABASE
+postgres=# DROP TABLE university_students;
+DROP TABLE
+postgres=# DROP TABLE orders;
+DROP TABLE
+postgres=# DROP TABLE departments;
+DROP TABLE
+postgres=# DROP TABLE university_students;
+ERROR:  table "university_students" does not exist
+postgres=# CREATE TABLE Students (
+    student_id SERIAL PRIMARY KEY,
+    name TEXT
+);
+
+CREATE TABLE Courses (
+    course_id SERIAL PRIMARY KEY,
+    title TEXT
+);
+
+CREATE TABLE Enrollments (
+    enrollment_id SERIAL PRIMARY KEY,
+    student_id INT REFERENCES Students(student_id),
+    course_id INT REFERENCES Courses(course_id)
+);
+CREATE TABLE
+CREATE TABLE
+CREATE TABLE
+postgres=# CREATE TABLE Enrollments (
+    enrollment_id SERIAL PRIMARY KEY,
+    student_id INT REFERENCES Students(student_id) ON DELETE CASCADE,
+    course_id INT REFERENCES Courses(course_id) ON DELETE CASCADE
+);
+ERROR:  relation "enrollments" already exists
+postgres=# DROP TABLE Enrollments;
+DROP TABLE
+postgres=# CREATE TABLE Enrollments (
+    enrollment_id SERIAL PRIMARY KEY,
+    student_id INT REFERENCES Students(student_id) ON DELETE CASCADE,
+    course_id INT REFERENCES Courses(course_id) ON DELETE CASCADE
+);
+CREATE TABLE
+postgres=# CREATE TABLE Passports (
+    passport_id SERIAL PRIMARY KEY,
+    student_id INT UNIQUE REFERENCES Students(student_id),
+    passport_number TEXT
+);
+CREATE TABLE
+postgres=# CREATE TABLE Teachers (
+    teacher_id SERIAL PRIMARY KEY,
+    name TEXT
+);
+
+CREATE TABLE Courses (
+    course_id SERIAL PRIMARY KEY,
+    title TEXT,
+    teacher_id INT REFERENCES Teachers(teacher_id)
+);
+CREATE TABLE
+ERROR:  relation "courses" already exists
+postgres=# DROP TABLE courses
+postgres-# ;
+ERROR:  cannot drop table courses because other objects depend on it
+ПОДРОБНОСТИ:  constraint enrollments_course_id_fkey on table enrollments depends on table courses
+ПОДСКАЗКА:  Use DROP ... CASCADE to drop the dependent objects too.
+postgres=# \d
+                            Список отношений
+ Схема  |              Имя              |        Тип         | Владелец
+--------+-------------------------------+--------------------+----------
+ public | courses                       | таблица            | postgres
+ public | courses_course_id_seq         | последовательность | postgres
+ public | enrollments                   | таблица            | postgres
+ public | enrollments_enrollment_id_seq | последовательность | postgres
+ public | passports                     | таблица            | postgres
+ public | passports_passport_id_seq     | последовательность | postgres
+ public | students                      | таблица            | postgres
+ public | students_student_id_seq       | последовательность | postgres
+ public | teachers                      | таблица            | postgres
+ public | teachers_teacher_id_seq       | последовательность | postgres
+(10 строк)
+
+postgres=# DROP TABLE courses;
+ERROR:  cannot drop table courses because other objects depend on it
+ПОДРОБНОСТИ:  constraint enrollments_course_id_fkey on table enrollments depends on table courses
+ПОДСКАЗКА:  Use DROP ... CASCADE to drop the dependent objects too.
+postgres=# DROP TABLE courses CASCADE;
+NOTICE:  drop cascades to constraint enrollments_course_id_fkey on table enrollments
+DROP TABLE
+postgres=# \D
+неверная команда \D
+Введите \? для получения справки.
+postgres=# \d
+                            Список отношений
+ Схема  |              Имя              |        Тип         | Владелец
+--------+-------------------------------+--------------------+----------
+ public | enrollments                   | таблица            | postgres
+ public | enrollments_enrollment_id_seq | последовательность | postgres
+ public | passports                     | таблица            | postgres
+ public | passports_passport_id_seq     | последовательность | postgres
+ public | students                      | таблица            | postgres
+ public | students_student_id_seq       | последовательность | postgres
+ public | teachers                      | таблица            | postgres
+ public | teachers_teacher_id_seq       | последовательность | postgres
+(8 строк)
+
+postgres=# CREATE TABLE Teachers (
+    teacher_id SERIAL PRIMARY KEY,
+    name TEXT
+);
+
+CREATE TABLE Courses (
+    course_id SERIAL PRIMARY KEY,
+    title TEXT,
+    teacher_id INT REFERENCES Teachers(teacher_id)
+);
+ERROR:  relation "teachers" already exists
+CREATE TABLE
+postgres=# CREATE TABLE Enrollments (
+    enrollment_id SERIAL PRIMARY KEY,
+    student_id INT REFERENCES Students(student_id),
+    course_id INT REFERENCES Courses(course_id)
+);
+ERROR:  relation "enrollments" already exists
+postgres=# DROP TABLE enrollments;
+DROP TABLE
+postgres=# CREATE TABLE Enrollments (
+    enrollment_id SERIAL PRIMARY KEY,
+    student_id INT REFERENCES Students(student_id),
+    course_id INT REFERENCES Courses(course_id)
+);
+CREATE TABLE
+postgres=# DROP TABLE enrollments;
+DROP TABLE
+postgres=# DROP TABLE courses CASCADE;
+DROP TABLE
+postgres=# DROP TABLE courses;
+ERROR:  table "courses" does not exist
+postgres=# \d
+                          Список отношений
+ Схема  |            Имя            |        Тип         | Владелец
+--------+---------------------------+--------------------+----------
+ public | passports                 | таблица            | postgres
+ public | passports_passport_id_seq | последовательность | postgres
+ public | students                  | таблица            | postgres
+ public | students_student_id_seq   | последовательность | postgres
+ public | teachers                  | таблица            | postgres
+ public | teachers_teacher_id_seq   | последовательность | postgres
+(6 строк)
+
+postgres=# DROP TABLE passports;
+DROP TABLE
+postgres=# Drop TABLE students;
+DROP TABLE
+postgres=# Drop table teachers;
+DROP TABLE
+postgres=# \d
+Отношения не найдены.
+postgres=# CREATE TABLE students (
+    student_id SERIAL PRIMARY KEY,
+    first_name TEXT,
+    last_name TEXT,
+    email TEXT
+);
+CREATE TABLE
+postgres=# CREATE TABLE courses (
+    course_id SERIAL PRIMARY KEY,
+    course_code TEXT,
+    course_name TEXT,
+    credits INT,
+    instructor TEXT
+);
+CREATE TABLE
+postgres=# CREATE TABLE enrollments (
+    enrollment_id SERIAL PRIMARY KEY,
+    student_id INT REFERENCES students(student_id) ON DELETE CASCADE,
+    course_id INT REFERENCES courses(course_id) ON DELETE CASCADE,
+    grade TEXT,
+    enrollment_date DATE DEFAULT CURRENT_DATE
+);
+CREATE TABLE
+postgres=# -- Добавим студентов
+INSERT INTO students (first_name, last_name, email) VALUES
+('Alice', 'Johnson', 'alice@university.edu'),
+('Bob', 'Smith', 'bob@university.edu'),
+('Carol', 'Wilson', 'carol@university.edu');
+
+-- Добавим курсы
+INSERT INTO courses (course_code, course_name, credits, instructor) VALUES
+('CS101', 'Intro to Programming', 3, 'Dr. Brown'),
+('CS201', 'Data Structures', 4, 'Dr. Davis'),
+('MATH101', 'Calculus I', 4, 'Dr. Wilson');
+
+-- Запишем студентов на курсы
+INSERT INTO enrollments (student_id, course_id, grade) VALUES
+(1, 1, 'A'),     -- Alice в CS101
+(1, 2, 'B+'),    -- Alice в CS201
+(2, 1, 'A-'),    -- Bob в CS101
+(2, 3, 'B'),     -- Bob в MATH101
+(3, 2, 'A'),     -- Carol в CS201
+(3, 3, 'A-');    -- Carol в MATH101
+INSERT 0 3
+INSERT 0 3
+INSERT 0 6
+postgres=# SELECT
+    s.first_name || ' ' || s.last_name AS student_name,
+    c.course_code,
+    c.course_name,
+    e.grade,
+    e.enrollment_date
+FROM students s
+JOIN enrollments e ON s.student_id = e.student_id
+JOIN courses c ON e.course_id = c.course_id
+ORDER BY s.last_name, c.course_code;
+ student_name  | course_code |     course_name      | grade | enrollment_date
+---------------+-------------+----------------------+-------+-----------------
+ Alice Johnson | CS101       | Intro to Programming | A     | 2025-09-10
+ Alice Johnson | CS201       | Data Structures      | B+    | 2025-09-10
+ Bob Smith     | CS101       | Intro to Programming | A-    | 2025-09-10
+ Bob Smith     | MATH101     | Calculus I           | B     | 2025-09-10
+ Carol Wilson  | CS201       | Data Structures      | A     | 2025-09-10
+ Carol Wilson  | MATH101     | Calculus I           | A-    | 2025-09-10
+(6 строк)
+
+postgres=# SELECT s.first_name, s.last_name, e.grade
+FROM students s
+JOIN enrollments e ON s.student_id = e.student_id
+JOIN courses c ON e.course_id = c.course_id
+WHERE c.course_code = 'CS101';
+ first_name | last_name | grade
+------------+-----------+-------
+ Alice      | Johnson   | A
+ Bob        | Smith     | A-
+(2 строки)
+
+postgres=# SELECT c.course_code, c.course_name, c.credits, e.grade
+FROM courses c
+JOIN enrollments e ON c.course_id = e.course_id
+JOIN students s ON s.student_id = e.student_id
+WHERE s.email = 'alice@university.edu';
+ course_code |     course_name      | credits | grade
+-------------+----------------------+---------+-------
+ CS101       | Intro to Programming |       3 | A
+ CS201       | Data Structures      |       4 | B+
+(2 строки)
+
+postgres=#
