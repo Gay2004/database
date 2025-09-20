@@ -1,0 +1,225 @@
+Last login: Tue Sep 16 13:04:25 on console
+admin@MacBook-Pro-Ulik ~ % psql -d university -U postgres
+Пароль пользователя postgres:
+psql: ошибка: подключиться к серверу через сокет "/tmp/.s.PGSQL.5432" не удалось: FATAL:  password authentication failed for user "postgres"
+admin@MacBook-Pro-Ulik ~ % psql -d university -U postgres
+Пароль пользователя postgres:
+psql: ошибка: подключиться к серверу через сокет "/tmp/.s.PGSQL.5432" не удалось: FATAL:  database "university" does not exist
+admin@MacBook-Pro-Ulik ~ % psql -d postgres -U postgres
+Пароль пользователя postgres:
+psql (17.6 (Homebrew))
+Введите "help", чтобы получить справку.
+
+postgres=# \d
+                            Список отношений
+ Схема  |              Имя              |        Тип         | Владелец
+--------+-------------------------------+--------------------+----------
+ public | courses                       | таблица            | postgres
+ public | courses_course_id_seq         | последовательность | postgres
+ public | enrollments                   | таблица            | postgres
+ public | enrollments_enrollment_id_seq | последовательность | postgres
+ public | students                      | таблица            | postgres
+ public | students_student_id_seq       | последовательность | postgres
+(6 строк)
+
+postgres=# \l
+                                                         Список баз данных
+       Имя        | Владелец | Кодировка | Провайдер локали | LC_COLLATE | LC_CTYPE | Локаль | Правила ICU |     Права доступа
+------------------+----------+-----------+------------------+------------+----------+--------+-------------+-----------------------
+ postgres         | postgres | UTF8      | libc             | C          | C        |        |             | =Tc/postgres         +
+                  |          |           |                  |            |          |        |             | postgres=CTc/postgres+
+                  |          |           |                  |            |          |        |             | ulik=CTc/postgres    +
+                  |          |           |                  |            |          |        |             | admin=CTc/postgres
+ template0        | postgres | UTF8      | libc             | C          | C        |        |             | =c/postgres          +
+                  |          |           |                  |            |          |        |             | postgres=CTc/postgres
+ template1        | postgres | UTF8      | libc             | C          | C        |        |             | =c/postgres          +
+                  |          |           |                  |            |          |        |             | postgres=CTc/postgres
+ template_postgis | postgres | UTF8      | libc             | C          | C        |        |             |
+(4 строки)
+
+postgres=# \quit
+admin@MacBook-Pro-Ulik ~ % psql -d postgres -U postgres
+Пароль пользователя postgres:
+psql (17.6 (Homebrew))
+Введите "help", чтобы получить справку.
+
+postgres=# CREATE TABLE students (
+    id SERIAL PRIMARY KEY,
+    name VARCHAR(100),
+    age INT
+);
+
+-- insert data
+INSERT INTO students (name, age) VALUES ('Alice', 21), ('Bob', 23);
+
+ERROR:  relation "students" already exists
+ERROR:  column "name" of relation "students" does not exist
+СТРОКА 1: INSERT INTO students (name, age) VALUES ('Alice', 21), ('Bob...
+                                ^
+postgres=# DO
+$$
+DECLARE
+    r RECORD;
+BEGIN
+    FOR r IN (SELECT tablename FROM pg_tables WHERE schemaname = 'public') LOOP
+        EXECUTE 'DROP TABLE IF EXISTS ' || quote_ident(r.tablename) || ' CASCADE';
+    END LOOP;
+END;
+$$;
+NOTICE:  drop cascades to constraint enrollments_student_id_fkey on table enrollments
+DO
+postgres=#
+postgres=# \dt
+Отношения не найдены.
+postgres=# CREATE TABLE students (
+    id SERIAL PRIMARY KEY,
+    name VARCHAR(100),
+    age INT
+);
+
+-- insert data                                                                  INSERT INTO students (name, age) VALUES ('Alice', 21), ('Bob', 23);
+CREATE TABLE
+INSERT 0 2
+postgres=# SELECT * FROM students;
+ id | name  | age
+----+-------+-----
+  1 | Alice |  21
+  2 | Bob   |  23
+(2 строки)
+
+postgres=# connection failed: connection to server at "127.0.0.1", port 5432 failed: FATAL: password authentication failed for user "postgres"
+Multiple connection attempts failed. All failures were:
+- host: 'localhost', port: '5432', hostaddr: '::1': connection failed: connection to server at "::1", port 5432 failed: FATAL: password authentication failed for user "postgres"
+- host: 'localhost', port: '5432', hostaddr: '127.0.0.1': connection failed: connection to server at "127.0.0.1", port 5432 failed: FATAL: password authentication failed for user "postgres"
+postgres-# ALTER USER postgres WITH PASSWORD '7149640kill';
+ERROR:  syntax error at or near "connection"
+СТРОКА 1: connection failed: connection to server at "127.0.0.1", port...
+          ^
+postgres=# connection failed: connection to server at "127.0.0.1", port 5432 failed: FATAL: password authentication failed for user "postgres"
+Multiple connection attempts failed. All failures were:
+- host: 'localhost', port: '5432', hostaddr: '::1': connection failed: connection to server at "::1", port 5432 failed: FATAL: password authentication failed for user "postgres"
+- host: 'localhost', port: '5432', hostaddr: '127.0.0.1': connection failed: connection to server at "127.0.0.1", port 5432 failed: FATAL: password authentication failed for user "postgres"
+ALTER USER postgres WITH PASSWORD 7149640kill;
+ERROR:  syntax error at or near "connection"
+СТРОКА 1: connection failed: connection to server at "127.0.0.1", port...
+          ^
+postgres=# \q
+admin@MacBook-Pro-Ulik ~ % psql -d postgres -U postgres
+Пароль пользователя postgres:
+psql (17.6 (Homebrew))
+Введите "help", чтобы получить справку.
+
+postgres=# \q
+admin@MacBook-Pro-Ulik ~ % psql -U postgres
+Пароль пользователя postgres:
+psql (17.6 (Homebrew))
+Введите "help", чтобы получить справку.
+
+postgres=# ALTER USER postgres WITH PASSWORD '123';
+ALTER ROLE
+postgres=# \q
+admin@MacBook-Pro-Ulik ~ % brew services restart postgresql
+
+==> Successfully started `postgresql@14` (label: homebrew.mxcl.postgresql@14)
+admin@MacBook-Pro-Ulik ~ % brew services restart postgresql
+
+Stopping `postgresql@14`... (might take a while)
+==> Successfully stopped `postgresql@14` (label: homebrew.mxcl.postgresql@14)
+==> Successfully started `postgresql@14` (label: homebrew.mxcl.postgresql@14)
+admin@MacBook-Pro-Ulik ~ %
+admin@MacBook-Pro-Ulik ~ % psql -U postgres
+Пароль пользователя postgres:
+psql (17.6 (Homebrew))
+Введите "help", чтобы получить справку.
+
+postgres=# SELECT * FROM students;
+ id | name  | age
+----+-------+-----
+  1 | Alice |  21
+  2 | Bob   |  23
+(2 строки)
+
+postgres=# DROP TABLE students;
+DROP TABLE
+postgres=# \d
+Отношения не найдены.
+postgres=# REATE TABLE Students (
+    student_id SERIAL PRIMARY KEY,
+    first_name VARCHAR(50),
+    last_name VARCHAR(50),
+    birth_date DATE
+);
+ERROR:  syntax error at or near "REATE"
+СТРОКА 1: REATE TABLE Students (
+          ^
+postgres=# CREATE TABLE Students (
+    student_id SERIAL PRIMARY KEY,
+    first_name VARCHAR(50),
+    last_name VARCHAR(50),
+    birth_date DATE
+);
+
+CREATE TABLE
+postgres=# INSERT INTO Students (first_name, last_name, birth_date)
+VALUES ('Aibek', 'Sharshenov', '2002-05-12');
+INSERT 0 1
+postgres=# INSERT INTO Students (first_name, last_name, birth_date) VALUES
+('Ainura', 'Toktomamatova', '2001-09-23'),
+('Bakyt', 'Mamatov', '2003-01-15'),
+('Gulzat', 'Sultanova', '2002-07-30');
+INSERT 0 3
+postgres=# SELECT * FROM students;
+ student_id | first_name |   last_name   | birth_date
+------------+------------+---------------+------------
+          1 | Aibek      | Sharshenov    | 2002-05-12
+          2 | Ainura     | Toktomamatova | 2001-09-23
+          3 | Bakyt      | Mamatov       | 2003-01-15
+          4 | Gulzat     | Sultanova     | 2002-07-30
+(4 строки)
+
+postgres=# UPDATE Students
+SET birth_date = '2002-05-15'
+WHERE first_name = 'Aibek' AND last_name = 'Sharshenov';
+UPDATE 1
+postgres=# SELECT * FROM students;
+ student_id | first_name |   last_name   | birth_date
+------------+------------+---------------+------------
+          2 | Ainura     | Toktomamatova | 2001-09-23
+          3 | Bakyt      | Mamatov       | 2003-01-15
+          4 | Gulzat     | Sultanova     | 2002-07-30
+          1 | Aibek      | Sharshenov    | 2002-05-15
+(4 строки)
+
+postgres=# DELETE FROM table_name
+WHERE condition;
+ERROR:  relation "table_name" does not exist
+СТРОКА 1: DELETE FROM table_name
+                      ^
+postgres=# DELETE FROM Students
+WHERE first_name = 'Gulzat' AND last_name = 'Sultanova';
+
+DELETE 1
+postgres=# DELETE FROM Students
+WHERE birth_date < '2002-01-01';
+DELETE 1
+postgres=# SELECT * FROM students;
+ student_id | first_name | last_name  | birth_date
+------------+------------+------------+------------
+          3 | Bakyt      | Mamatov    | 2003-01-15
+          1 | Aibek      | Sharshenov | 2002-05-15
+(2 строки)
+
+postgres=# UPDATE Students
+SET last_name = 'Bekov'
+WHERE last_name IN ('Uulu', 'Isakov');
+UPDATE 0
+postgres=# DELETE FROM Students
+WHERE student_id IN (2, 3, 5);
+DELETE 1
+postgres=# SELECT * FROM students;
+ student_id | first_name | last_name  | birth_date
+------------+------------+------------+------------
+          1 | Aibek      | Sharshenov | 2002-05-15
+(1 строка)
+
+postgres=#

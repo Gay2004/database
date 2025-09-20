@@ -1,0 +1,93 @@
+postgres=# CREATE TABLE Departments (
+    DepartmentID SERIAL PRIMARY KEY,
+    Name VARCHAR(100),
+    Location VARCHAR(100)
+);
+CREATE TABLE
+postgres=# CREATE TABLE Professors (
+    ProfessorID SERIAL PRIMARY KEY,
+    Name VARCHAR(100),
+    Email VARCHAR(100),
+    Office VARCHAR(50),
+    DepartmentID INT REFERENCES Departments(DepartmentID)
+);
+CREATE TABLE
+postgres=# CREATE TABLE Courses (
+    CourseID SERIAL PRIMARY KEY,
+    Title VARCHAR(100),
+    Credits INT,
+    DepartmentID INT REFERENCES Departments(DepartmentID),
+    ProfessorID INT REFERENCES Professors(ProfessorID)
+);
+CREATE TABLE
+postgres=# CREATE TABLE Enrollments (
+    StudentID INT REFERENCES Students(StudentID),
+    CourseID INT REFERENCES Courses(CourseID),
+    PRIMARY KEY (StudentID, CourseID)
+);
+CREATE TABLE
+postgres=#
+postgres=# CREATE TABLE Authors (
+    AuthorID SERIAL PRIMARY KEY,
+    Name VARCHAR(100)
+);
+
+CREATE TABLE Books (
+    BookID SERIAL PRIMARY KEY,
+    Title VARCHAR(200),
+    ISBN VARCHAR(20)
+);
+
+CREATE TABLE BookAuthors (
+    BookID INT REFERENCES Books(BookID),
+    AuthorID INT REFERENCES Authors(AuthorID),
+    PRIMARY KEY (BookID, AuthorID)
+);
+
+CREATE TABLE Members (
+    MemberID SERIAL PRIMARY KEY,
+    Name VARCHAR(100),
+    Email VARCHAR(100)
+);
+
+CREATE TABLE Loans (
+    LoanID SERIAL PRIMARY KEY,
+    MemberID INT REFERENCES Members(MemberID),
+    BookID INT REFERENCES Books(BookID),
+    LoanDate DATE,
+    DueDate DATE,
+    ReturnDate DATE,
+    LateFee NUMERIC(5,2)
+);
+CREATE TABLE
+CREATE TABLE
+CREATE TABLE
+CREATE TABLE
+CREATE TABLE
+postgres=# \d
+                           Список отношений
+ Схема  |             Имя              |        Тип         | Владелец
+--------+------------------------------+--------------------+----------
+ public | authors                      | таблица            | postgres
+ public | authors_authorid_seq         | последовательность | postgres
+ public | bookauthors                  | таблица            | postgres
+ public | books                        | таблица            | postgres
+ public | books_bookid_seq             | последовательность | postgres
+ public | courses                      | таблица            | postgres
+ public | courses_courseid_seq         | последовательность | postgres
+ public | departments                  | таблица            | postgres
+ public | departments_departmentid_seq | последовательность | postgres
+ public | enrollments                  | таблица            | postgres
+ public | loans                        | таблица            | postgres
+ public | loans_loanid_seq             | последовательность | postgres
+ public | members                      | таблица            | postgres
+ public | members_memberid_seq         | последовательность | postgres
+ public | professors                   | таблица            | postgres
+ public | professors_professorid_seq   | последовательность | postgres
+ public | students                     | таблица            | postgres
+ public | students_studentid_seq       | последовательность | postgres
+(18 строк)
+
+postgres=#
+Сущность — кто или что.
+Атрибут — что мы знаем об этом.
