@@ -1,0 +1,279 @@
+Last login: Tue Oct 14 18:02:01 on ttys000
+admin@MacBook-Pro-Ulik ~ % psql -U postgres
+Пароль пользователя postgres:
+psql (17.6 (Homebrew))
+Введите "help", чтобы получить справку.
+
+postgres=# SELECT first_name, salary
+FROM employees
+WHERE salary > (SELECT AVG(salary) FROM employees);
+ERROR:  column "first_name" does not exist
+СТРОКА 1: SELECT first_name, salary
+                 ^
+postgres=# ALTER TABLE employees
+ADD COLUMN first_name VARCHAR(50);
+ALTER TABLE
+postgres=# CREATE TABLE employees (
+    employee_id SERIAL PRIMARY KEY,
+    first_name VARCHAR(50),
+    last_name VARCHAR(50),
+    department VARCHAR(50),
+    salary DECIMAL(10, 2)
+);
+ERROR:  relation "employees" already exists
+postgres=# SELECT first_name, salary
+FROM employees
+WHERE salary > (SELECT AVG(salary) FROM employees);
+ERROR:  column "salary" does not exist
+СТРОКА 1: SELECT first_name, salary
+                             ^
+postgres=# ALTER TABLE employees
+ADD COLUMN salary DECIMAL(10, 2);
+ALTER TABLE
+postgres=# SELECT first_name, salary
+FROM employees
+WHERE salary > (SELECT AVG(salary) FROM employees);
+ first_name | salary
+------------+--------
+(0 строк)
+
+postgres=# INSERT INTO employees (first_name, last_name, department, salary)
+VALUES
+('Alice', 'Smith', 'Engineering', 75000),
+('Bob', 'Johnson', 'Sales', 50000),
+('Carol', 'Williams', 'Marketing', 62000),
+('David', 'Brown', 'Engineering', 80000);
+ERROR:  column "last_name" of relation "employees" does not exist
+СТРОКА 1: INSERT INTO employees (first_name, last_name, department, sa...
+                                             ^
+postgres=# ALTER TABLE employees
+ADD COLUMN salary DECIMAL(10, 2)last_name VARCHAR(50),
+    department VARCHAR(50),;
+ERROR:  syntax error at or near "last_name"
+СТРОКА 2: ADD COLUMN salary DECIMAL(10, 2)last_name VARCHAR(50),
+                                          ^
+postgres=# ALTER TABLE employees
+ADD COLUMN last_name VARCHAR(50),
+    department VARCHAR(50),;
+ERROR:  syntax error at or near "department"
+СТРОКА 3:     department VARCHAR(50),;
+              ^
+postgres=# ALTER TABLE employees
+ADD COLUMN last_name VARCHAR(50),
+    department VARCHAR(50);
+ERROR:  syntax error at or near "department"
+СТРОКА 3:     department VARCHAR(50);
+              ^
+postgres=# ALTER TABLE employees
+ADD COLUMN last_name VARCHAR(50);
+ALTER TABLE
+postgres=# ALTER TABLE employees
+ADD COLUMN department VARCHAR(50);
+ALTER TABLE
+postgres=# INSERT INTO employees (first_name, last_name, department, salary)
+VALUES
+('Alice', 'Smith', 'Engineering', 75000),
+('Bob', 'Johnson', 'Sales', 50000),
+('Carol', 'Williams', 'Marketing', 62000),
+('David', 'Brown', 'Engineering', 80000);
+INSERT 0 4
+postgres=# SELECT first_name, salary
+FROM employees
+WHERE salary > (SELECT AVG(salary) FROM employees);
+ first_name |  salary
+------------+----------
+ Alice      | 75000.00
+ David      | 80000.00
+(2 строки)
+
+postgres=# WITH regional_sales AS (
+  SELECT region_id, SUM(amount) AS total_sales
+  FROM orders
+  GROUP BY region_id
+)
+SELECT *
+FROM regional_sales
+WHERE total_sales > 1000000;
+ERROR:  column "region_id" does not exist
+СТРОКА 2:   SELECT region_id, SUM(amount) AS total_sales
+                   ^
+postgres=# WITH RECURSIVE org_chart AS (
+  SELECT employee_id, first_name, manager_id
+  FROM employees
+  WHERE manager_id IS NULL
+
+  UNION ALL
+
+  SELECT e.employee_id, e.first_name, e.manager_id
+  FROM employees e
+  JOIN org_chart oc ON e.manager_id = oc.employee_id
+)
+SELECT * FROM org_chart;
+ employee_id | first_name | manager_id
+-------------+------------+------------
+           1 |            |
+           5 | Alice      |
+           6 | Bob        |
+           7 | Carol      |
+           8 | David      |
+           2 |            |          1
+           3 |            |          1
+           4 |            |          2
+(8 строк)
+
+postgres=# SELECT
+  first_name,
+  department,
+  salary,
+  RANK() OVER (PARTITION BY department ORDER BY salary DESC) AS rank_in_dept
+FROM employees;
+ first_name | department  |  salary  | rank_in_dept
+------------+-------------+----------+--------------
+ David      | Engineering | 80000.00 |            1
+ Alice      | Engineering | 75000.00 |            2
+ Carol      | Marketing   | 62000.00 |            1
+ Bob        | Sales       | 50000.00 |            1
+            |             |          |            1
+            |             |          |            1
+            |             |          |            1
+            |             |          |            1
+(8 строк)
+
+postgres=# SELECT
+  product_name,
+  SUM(CASE WHEN year = 2022 THEN sales ELSE 0 END) AS sales_2022,
+  SUM(CASE WHEN year = 2023 THEN sales ELSE 0 END) AS sales_2023
+FROM sales
+GROUP BY product_name;
+ERROR:  column "product_name" does not exist
+СТРОКА 2:   product_name,
+            ^
+postgres=# \cd
+postgres=# \l
+                                                         Список баз данных
+       Имя        | Владелец | Кодировка | Провайдер локали | LC_COLLATE | LC_CTYPE | Локаль | Правила ICU |     Права доступа
+------------------+----------+-----------+------------------+------------+----------+--------+-------------+-----------------------
+ postgres         | postgres | UTF8      | libc             | C          | C        |        |             | =Tc/postgres         +
+                  |          |           |                  |            |          |        |             | postgres=CTc/postgres+
+                  |          |           |                  |            |          |        |             | ulik=CTc/postgres    +
+                  |          |           |                  |            |          |        |             | admin=CTc/postgres
+ template0        | postgres | UTF8      | libc             | C          | C        |        |             | =c/postgres          +
+                  |          |           |                  |            |          |        |             | postgres=CTc/postgres
+ template1        | postgres | UTF8      | libc             | C          | C        |        |             | =c/postgres          +
+                  |          |           |                  |            |          |        |             | postgres=CTc/postgres
+ template_postgis | postgres | UTF8      | libc             | C          | C        |        |             |
+(4 строки)
+postgres=# \dt
+             Список отношений
+ Схема  |     Имя     |   Тип   | Владелец
+--------+-------------+---------+----------
+ public | authors     | таблица | postgres
+ public | bookauthors | таблица | postgres
+ public | books       | таблица | postgres
+ public | courses     | таблица | postgres
+ public | customers   | таблица | postgres
+ public | departments | таблица | postgres
+ public | employees   | таблица | postgres
+ public | enrollments | таблица | postgres
+ public | loans       | таблица | postgres
+ public | members     | таблица | postgres
+ public | order_items | таблица | postgres
+ public | orders      | таблица | postgres
+ public | products    | таблица | postgres
+ public | professors  | таблица | postgres
+ public | sales       | таблица | postgres
+ public | students    | таблица | postgres
+(16 строк)
+
+postgres=# SELECT * FROM products;
+ product_id | product_name |  price
+------------+--------------+---------
+          1 | Laptop       | 1200.00
+          2 | Mouse        |   25.00
+          3 | Keyboard     |   45.00
+(3 строки)
+
+postgres=# SELECT
+  product_name,
+  SUM(CASE WHEN year = 2022 THEN sales ELSE 0 END) AS sales_2022,
+  SUM(CASE WHEN year = 2023 THEN sales ELSE 0 END) AS sales_2023
+FROM sales
+GROUP BY product_name;
+ERROR:  column "product_name" does not exist
+СТРОКА 2:   product_name,
+            ^
+postgres=# SELECT * FROM sales;
+ id | employee_id | amount  | sale_date
+----+-------------+---------+------------
+  1 |           3 | 1200.00 | 2023-02-10
+  2 |           4 |  800.00 | 2023-02-11
+  3 |           3 | 1500.00 | 2023-03-05
+  4 |           2 |  300.00 | 2023-03-12
+  5 |           6 | 2100.00 | 2023-04-01
+  6 |           1 |  950.00 | 2023-04-18
+  7 |           9 |  400.00 | 2023-05-10
+  8 |          10 | 1700.00 | 2023-06-20
+(8 строк)
+
+postgres=# ALTER TABLE sales
+ADD COLUMN product_name VARCHAR(100);
+ALTER TABLE
+postgres=# INSERT INTO sales (product_name)
+VALUES
+('Laptop'),
+('Smartphone'),
+('Headphones'),
+('Keyboard'),
+('Mouse');
+INSERT 0 5
+postgres=# SELECT
+  product_name,
+  SUM(CASE WHEN year = 2022 THEN sales ELSE 0 END) AS sales_2022,
+  SUM(CASE WHEN year = 2023 THEN sales ELSE 0 END) AS sales_2023
+FROM sales
+GROUP BY product_name;
+ERROR:  column "year" does not exist
+СТРОКА 3:   SUM(CASE WHEN year = 2022 THEN sales ELSE 0 END) AS sales_...
+                          ^
+postgres=# SELECT first_name, salary
+FROM employees
+WHERE salary > (SELECT AVG(salary) FROM employees);
+ first_name |  salary
+------------+----------
+ Alice      | 75000.00
+ David      | 80000.00
+(2 строки)
+
+postgres=# SELECT
+  first_name,
+  department,
+  salary,
+  RANK() OVER (PARTITION BY department ORDER BY salary DESC) AS rank_in_dept
+FROM employees;
+ first_name | department  |  salary  | rank_in_dept
+------------+-------------+----------+--------------
+ David      | Engineering | 80000.00 |            1
+ Alice      | Engineering | 75000.00 |            2
+ Carol      | Marketing   | 62000.00 |            1
+ Bob        | Sales       | 50000.00 |            1
+            |             |          |            1
+            |             |          |            1
+            |             |          |            1
+            |             |          |            1
+(8 строк)
+
+postgres=# EXPLAIN ANALYZE SELECT * FROM orders WHERE total_amount > 1000;
+                                           QUERY PLAN
+-------------------------------------------------------------------------------------------------
+ Seq Scan on orders  (cost=0.00..1.04 rows=1 width=28) (actual time=0.060..0.061 rows=0 loops=1)
+   Filter: (total_amount > '1000'::numeric)
+   Rows Removed by Filter: 3
+ Planning Time: 1.245 ms
+ Execution Time: 0.100 ms
+(5 строк)
+
+postgres=# SELECT * FROM big_table LIMIT 10;
+ERROR:  relation "big_table" does not exist
+СТРОКА 1: SELECT * FROM big_table LIMIT 10;
+                        ^
+postgres=#

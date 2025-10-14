@@ -1,0 +1,141 @@
+
+admin@MacBook-Pro-Ulik ~ % psql -U postgres
+Пароль пользователя postgres:
+psql (17.6 (Homebrew))
+Введите "help", чтобы получить справку.
+
+postgres=# SELECT COUNT(*) FROM employees;
+ count
+-------
+    10
+(1 строка)
+
+postgres=# SELECT department, AVG(salary)
+FROM employees
+GROUP BY department;
+ department  |        avg
+-------------+--------------------
+ Marketing   | 68000.000000000000
+ Finance     | 86000.000000000000
+ Engineering | 84250.000000000000
+ Sales       | 63500.000000000000
+ HR          | 60000.000000000000
+(5 строк)
+
+postgres=# SELECT MAX(salary), MIN(salary)
+FROM employees;
+    max    |   min
+-----------+----------
+ 115000.00 | 40000.00
+(1 строка)
+
+postgres=# SELECT department, STRING_AGG(name, ', ') AS names
+FROM employees
+GROUP BY department;
+ department  |                      names
+-------------+--------------------------------------------------
+ Marketing   | Ella Brown
+ Finance     | Ivy Adams, Jack Miller
+ Engineering | Alice Johnson, Bob Smith, Frank White, Grace Kim
+ Sales       | Clara Davis, Daniel Lee
+ HR          | Henry Wilson
+(5 строк)
+
+postgres=# SELECT department, ARRAY_AGG(salary) AS salaries
+FROM employees
+GROUP BY department;
+ department  |                salaries
+-------------+----------------------------------------
+ Marketing   | {68000.00}
+ Finance     | {80000.00,92000.00}
+ Engineering | {95000.00,87000.00,115000.00,40000.00}
+ Sales       | {72000.00,55000.00}
+ HR          | {60000.00}
+(5 строк)
+
+postgres=# SELECT
+  department,
+  STDDEV(salary) AS std,
+  VARIANCE(salary) AS var
+FROM employees
+GROUP BY department;
+
+-- Корреляция между опытом и зарплатой
+SELECT CORR(experience_years, salary)
+FROM employees;
+ department  |        std         |          var
+-------------+--------------------+------------------------
+ Marketing   |                    |
+ Finance     |  8485.281374238570 |  72000000.000000000000
+ Engineering |     31763.44859531 |    1008916666.66666667
+ Sales       | 12020.815280171308 | 144500000.000000000000
+ HR          |                    |
+(5 строк)
+
+ERROR:  column "experience_years" does not exist
+СТРОКА 1: SELECT CORR(experience_years, salary)
+                      ^
+postgres=# SELECT department, COUNT(*) AS employees, AVG(salary) AS avg_salary
+FROM employees
+GROUP BY department;
+ department  | employees |     avg_salary
+-------------+-----------+--------------------
+ Marketing   |         1 | 68000.000000000000
+ Finance     |         2 | 86000.000000000000
+ Engineering |         4 | 84250.000000000000
+ Sales       |         2 | 63500.000000000000
+ HR          |         1 | 60000.000000000000
+(5 строк)
+
+postgres=# SELECT year, quarter, SUM(amount)
+FROM sales
+GROUP BY year, quarter;
+ERROR:  column "year" does not exist
+СТРОКА 1: SELECT year, quarter, SUM(amount)
+                 ^
+postgres=# -- Только отделы с > 5 сотрудников
+SELECT department, COUNT(*) AS total
+FROM employees
+GROUP BY department
+HAVING COUNT(*) > 5;
+ department | total
+------------+-------
+(0 строк)
+
+postgres=# SELECT
+  department,
+  COUNT(*) AS count,
+  ROUND(COUNT(*)::float / (SELECT COUNT(*) FROM employees) * 100, 2) AS percentage
+FROM employees
+GROUP BY department;
+ERROR:  function round(double precision, integer) does not exist
+СТРОКА 4:   ROUND(COUNT(*)::float / (SELECT COUNT(*) FROM employees) *...
+            ^
+ПОДСКАЗКА:  No function matches the given name and argument types. You might need to add explicit type casts.
+postgres=# SELECT
+  name, department, salary,
+  AVG(salary) OVER (PARTITION BY department) AS dept_avg
+FROM employees;
+     name      | department  |  salary   |      dept_avg
+---------------+-------------+-----------+--------------------
+ Alice Johnson | Engineering |  95000.00 | 84250.000000000000
+ Bob Smith     | Engineering |  87000.00 | 84250.000000000000
+ Frank White   | Engineering | 115000.00 | 84250.000000000000
+ Grace Kim     | Engineering |  40000.00 | 84250.000000000000
+ Ivy Adams     | Finance     |  80000.00 | 86000.000000000000
+ Jack Miller   | Finance     |  92000.00 | 86000.000000000000
+ Henry Wilson  | HR          |  60000.00 | 60000.000000000000
+ Ella Brown    | Marketing   |  68000.00 | 68000.000000000000
+ Clara Davis   | Sales       |  72000.00 | 63500.000000000000
+ Daniel Lee    | Sales       |  55000.00 | 63500.000000000000
+(10 строк)
+
+postgres=# SELECT
+  COUNT(*) AS total,
+  COUNT(email) AS with_email,
+  COUNT(*) - COUNT(email) AS null_emails
+FROM employees;
+ERROR:  column "email" does not exist
+СТРОКА 3:   COUNT(email) AS with_email,
+                  ^
+postgres=#

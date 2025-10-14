@@ -1,0 +1,74 @@
+ostgres=# DROP PUBLICATION migration_pub;
+DROP PUBLICATION
+postgres=#
+postgres=# CREATE PUBLICATION migration_pub FOR ALL TABLES;
+WARNING:  "wal_level" is insufficient to publish logical changes
+HINT:  Set "wal_level" to "logical" before creating subscriptions.
+CREATE PUBLICATION
+postgres=# SELECT * FROM employees;
+ employee_id | name  | manager_id | first_name |  salary  | last_name | department
+-------------+-------+------------+------------+----------+-----------+-------------
+           1 | Anna  |            |            |          |           |
+           2 | Boris |          1 |            |          |           |
+           3 | Clara |          1 |            |          |           |
+           4 | David |          2 |            |          |           |
+           5 |       |            | Alice      | 75000.00 | Smith     | Engineering
+           6 |       |            | Bob        | 50000.00 | Johnson   | Sales
+           7 |       |            | Carol      | 62000.00 | Williams  | Marketing
+           8 |       |            | David      | 80000.00 | Brown     | Engineering
+(8 rows)
+
+postgres=#
+
+
+Last login: Tue Oct 14 19:00:54 on ttys000
+admin@MacBook-Pro-Ulik ~ % psql -U postgres
+Пароль пользователя postgres:
+psql (17.6 (Homebrew))
+Введите "help", чтобы получить справку.
+
+postgres=# COPY employees TO '/users/admin/Desktop/employees.csv' WITH CSV HEADER;
+ERROR:  could not open file "/users/admin/Desktop/employees.csv" for writing: Permission denied
+ПОДСКАЗКА:  COPY TO instructs the PostgreSQL server process to write a file. You may want a client-side facility such as psql's \copy.
+postgres=# \copy employees TO '/Users/admin/Desktop/employees.csv' WITH CSV HEADER;
+COPY 8
+postgres=# \copy employees(first_name, last_name, email) FROM '/Users/admin/Desktop/new_employees.csv' WITH CSV HEADER;
+/Users/admin/Desktop/new_employees.csv: No such file or directory
+postgres=# \copy employees TO '/Users/admin/Desktop/employees.csv' WITH CSV H
+ERROR:  syntax error at or near "H"
+СТРОКА 1: COPY  employees TO STDOUT WITH CSV H
+                                             ^
+postgres=# ls -l /Users/admin/Desktop/new_employees.csv
+postgres-# \q
+admin@MacBook-Pro-Ulik ~ % ls -l /Users/admin/Desktop/new_employees.csv
+
+ls: /Users/admin/Desktop/new_employees.csv: No such file or directory
+admin@MacBook-Pro-Ulik ~ % psql -U postgres
+Пароль пользователя postgres:
+psql (17.6 (Homebrew))
+Введите "help", чтобы получить справку.
+
+postgres=# \copy employees TO '/users/admin/Desktop/employees.csv' WITH CSV H
+ERROR:  syntax error at or near "H"
+СТРОКА 1: COPY  employees TO STDOUT WITH CSV H
+                                             ^
+postgres=# \copy employees TO '/users/admin/Desktop/employees.csv' WITH CSV HEADER
+COPY 8
+postgres=# \copy employees(first_name, last_name, email) FROM '/users/admin/Desktop/new_employees.csv' WITH CSV HEADER;
+/users/admin/Desktop/new_employees.csv: No such file or directory
+postgres=# \copy employees(first_name, last_name, email) FROM '/users/admin/Desktop/employees.csv' WITH CSV HEADER;
+ERROR:  column "email" of relation "employees" does not exist
+postgres=# \copy employees(first_name, last_name) FROM '/users/admin/Desktop/employees.csv' WITH CSV HEADER;
+ERROR:  extra data after last expected column
+КОНТЕКСТ:  COPY employees, line 2: "1,Anna,,,,,"
+postgres=# pg_dump -h localhost -U postgres -d production_db > backup.sql
+postgres-# \q
+admin@MacBook-Pro-Ulik ~ % pg_dump -h localhost -U postgres -d production_db > backup.sql
+Пароль:
+pg_dump: ошибка: подключиться к серверу "localhost" (::1), порту 5432 не удалось: FATAL:  database "production_db" does not exist
+admin@MacBook-Pro-Ulik ~ % pg_dumpall -h localhost -U postgres > full_cluster_backup.sql
+Пароль:
+Пароль:
+Пароль:
+Пароль:
+admin@MacBook-Pro-Ulik ~ %

@@ -1,0 +1,43 @@
+Last login: Tue Oct 14 18:20:57 on ttys000
+admin@MacBook-Pro-Ulik ~ % psql -U postgres
+Пароль пользователя postgres:
+psql (17.6 (Homebrew))
+Введите "help", чтобы получить справку.
+
+postgres=# BEGIN;
+BEGIN
+postgres=*# INSERT INTO customers(name) VALUES('Alice');
+
+SAVEPOINT after_customer;
+INSERT INTO orders(customer_id, total) VALUES(1, 500);
+INSERT 0 1
+SAVEPOINT
+ERROR:  column "total" of relation "orders" does not exist
+СТРОКА 1: INSERT INTO orders(customer_id, total) VALUES(1, 500);
+                                          ^
+postgres=!# SELECT * FROM orders;
+ERROR:  current transaction is aborted, commands ignored until end of transaction block
+postgres=!# ROLLBACK;
+ROLLBACK
+postgres=# SELECT * FROM orders;
+ order_id | customer_id | order_date | total_amount
+----------+-------------+------------+--------------
+        1 |           1 | 2025-01-10 |       250.50
+        2 |           1 | 2025-02-15 |       300.00
+        3 |           2 | 2025-03-20 |       120.75
+(3 строки)
+
+postgres=# BEGIN;
+BEGIN
+postgres=*# INSERT INTO customers(name) VALUES('Alice');
+
+SAVEPOINT after_customer;
+INSERT INTO orders(customer_id, total_amount) VALUES(1, 500);
+INSERT 0 1
+SAVEPOINT
+INSERT 0 1
+postgres=*# ROLLBACK TO SAVEPOINT after_customer;
+ROLLBACK
+postgres=*# COMMIT;
+COMMIT
+postgres=#

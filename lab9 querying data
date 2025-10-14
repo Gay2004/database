@@ -1,0 +1,193 @@
+
+admin@MacBook-Pro-Ulik ~ % psql -U postgres
+Пароль пользователя postgres:
+psql (17.6 (Homebrew))
+Введите "help", чтобы получить справку.
+
+postgres=# DROP TABLE IF EXISTS employees;
+DROP TABLE
+postgres=# CREATE TABLE employees (
+    id SERIAL PRIMARY KEY,
+    name VARCHAR(50) NOT NULL,
+    department VARCHAR(50),
+    position VARCHAR(50),
+    salary NUMERIC(10, 2),
+    hire_date DATE
+);
+CREATE TABLE
+postgres=# INSERT INTO employees (name, department, position, salary, hire_date) VALUES
+('Alice Johnson', 'Engineering', 'Software Engineer', 95000, '2018-04-15'),
+('Bob Smith', 'Engineering', 'DevOps Engineer', 87000, '2019-06-20'),
+('Clara Davis', 'Sales', 'Sales Manager', 72000, '2020-03-11'),
+('Daniel Lee', 'Sales', 'Sales Representative', 55000, '2021-05-07'),
+('Ella Brown', 'Marketing', 'Content Strategist', 68000, '2019-09-30'),
+('Frank White', 'Engineering', 'Data Scientist', 115000, '2017-01-12'),
+('Grace Kim', 'Engineering', 'Intern', 40000, '2024-06-01'),
+('Henry Wilson', 'HR', 'Recruiter', 60000, '2020-10-10'),
+('Ivy Adams', 'Finance', 'Accountant', 80000, '2016-07-22'),
+('Jack Miller', 'Finance', 'Financial Analyst', 92000, '2018-11-05');
+INSERT 0 10
+postgres=# SELECT * FROM employees;
+ id |     name      | department  |       position       |  salary   | hire_date
+----+---------------+-------------+----------------------+-----------+------------
+  1 | Alice Johnson | Engineering | Software Engineer    |  95000.00 | 2018-04-15
+  2 | Bob Smith     | Engineering | DevOps Engineer      |  87000.00 | 2019-06-20
+  3 | Clara Davis   | Sales       | Sales Manager        |  72000.00 | 2020-03-11
+  4 | Daniel Lee    | Sales       | Sales Representative |  55000.00 | 2021-05-07
+  5 | Ella Brown    | Marketing   | Content Strategist   |  68000.00 | 2019-09-30
+  6 | Frank White   | Engineering | Data Scientist       | 115000.00 | 2017-01-12
+  7 | Grace Kim     | Engineering | Intern               |  40000.00 | 2024-06-01
+  8 | Henry Wilson  | HR          | Recruiter            |  60000.00 | 2020-10-10
+  9 | Ivy Adams     | Finance     | Accountant           |  80000.00 | 2016-07-22
+ 10 | Jack Miller   | Finance     | Financial Analyst    |  92000.00 | 2018-11-0postgres=# SELECT name, position, salary
+FROM employees
+WHERE department = 'Engineering';
+     name      |     position      |  salary
+---------------+-------------------+-----------
+ Alice Johnson | Software Engineer |  95000.00
+ Bob Smith     | DevOps Engineer   |  87000.00
+ Frank White   | Data Scientist    | 115000.00
+ Grace Kim     | Intern            |  40000.00
+(4 строки)
+
+postgres=# SELECT name, salary, salary * 0.10 AS potential_bonus
+FROM employees;
+     name      |  salary   | potential_bonus
+---------------+-----------+-----------------
+ Alice Johnson |  95000.00 |       9500.0000
+ Bob Smith     |  87000.00 |       8700.0000
+ Clara Davis   |  72000.00 |       7200.0000
+ Daniel Lee    |  55000.00 |       5500.0000
+ Ella Brown    |  68000.00 |       6800.0000
+ Frank White   | 115000.00 |      11500.0000
+ Grace Kim     |  40000.00 |       4000.0000
+ Henry Wilson  |  60000.00 |       6000.0000
+ Ivy Adams     |  80000.00 |       8000.0000
+ Jack Miller   |  92000.00 |       9200.0000
+(10 строк)
+
+postgres=# SELECT name, salary,
+  CASE
+    WHEN salary > 100000 THEN 'Senior'
+    WHEN salary BETWEEN 60000 AND 100000 THEN 'Mid-Level'
+    ELSE 'Junior'
+  END AS employee_level
+FROM employees;
+     name      |  salary   | employee_level
+---------------+-----------+----------------
+ Alice Johnson |  95000.00 | Mid-Level
+ Bob Smith     |  87000.00 | Mid-Level
+ Clara Davis   |  72000.00 | Mid-Level
+ Daniel Lee    |  55000.00 | Junior
+ Ella Brown    |  68000.00 | Mid-Level
+ Frank White   | 115000.00 | Senior
+ Grace Kim     |  40000.00 | Junior
+ Henry Wilson  |  60000.00 | Mid-Level
+ Ivy Adams     |  80000.00 | Mid-Level
+ Jack Miller   |  92000.00 | Mid-Level
+(10 строк)
+
+postgres=# WITH department_averages AS (
+  SELECT department, AVG(salary) AS avg_salary
+  FROM employees
+  GROUP BY department
+)
+SELECT e.name, e.department, e.salary, da.avg_salary
+FROM employees e
+JOIN department_averages da ON e.department = da.department
+WHERE e.salary > da.avg_salary;
+     name      | department  |  salary   |     avg_salary
+---------------+-------------+-----------+--------------------
+ Alice Johnson | Engineering |  95000.00 | 84250.000000000000
+ Bob Smith     | Engineering |  87000.00 | 84250.000000000000
+ Clara Davis   | Sales       |  72000.00 | 63500.000000000000
+ Frank White   | Engineering | 115000.00 | 84250.000000000000
+ Jack Miller   | Finance     |  92000.00 | 86000.000000000000
+(5 строк)
+
+postgres=# DROP TABLE IF EXISTS sales;
+NOTICE:  table "sales" does not exist, skipping
+DROP TABLE
+postgres=# CREATE TABLE sales (
+    id SERIAL PRIMARY KEY,
+    employee_id INT REFERENCES employees(id),
+    amount NUMERIC(10, 2),
+    sale_date DATE
+);
+CREATE TABLE
+postgres=# INSERT INTO sales (employee_id, amount, sale_date) VALUES
+(3, 1200, '2023-02-10'),  -- Clara (Sales Manager)
+(4, 800,  '2023-02-11'),  -- Daniel (Sales Rep)
+(3, 1500, '2023-03-05'),
+(2, 300,  '2023-03-12'),  -- Bob (Engineer)
+(6, 2100, '2023-04-01'),  -- Frank (Data Scientist)
+(1, 950,  '2023-04-18'),  -- Alice (Engineer)
+(9, 400,  '2023-05-10'),  -- Ivy (Finance)
+(10, 1700, '2023-06-20'); -- Jack (Finance)
+INSERT 0 8
+postgres=# SELECT name
+FROM employees
+WHERE id IN (
+  SELECT employee_id
+  FROM sales
+  WHERE amount > 1000
+);
+    name
+-------------
+ Clara Davis
+ Frank White
+ Jack Miller
+(3 строки)
+
+postgres=# SELECT name
+FROM employees e
+WHERE EXISTS (
+  SELECT 1
+  FROM sales s
+  WHERE s.employee_id = e.id
+  AND s.amount > 1000
+);
+    name
+-------------
+ Clara Davis
+ Frank White
+ Jack Miller
+(3 строки)
+
+postgres=# SELECT e.name, e.department, s.amount, s.sale_date
+FROM employees e
+JOIN sales s ON e.id = s.employee_id
+ORDER BY s.amount DESC;
+     name      | department  | amount  | sale_date
+---------------+-------------+---------+------------
+ Frank White   | Engineering | 2100.00 | 2023-04-01
+ Jack Miller   | Finance     | 1700.00 | 2023-06-20
+ Clara Davis   | Sales       | 1500.00 | 2023-03-05
+ Clara Davis   | Sales       | 1200.00 | 2023-02-10
+ Alice Johnson | Engineering |  950.00 | 2023-04-18
+ Daniel Lee    | Sales       |  800.00 | 2023-02-11
+ Ivy Adams     | Finance     |  400.00 | 2023-05-10
+ Bob Smith     | Engineering |  300.00 | 2023-03-12
+(8 строк)
+
+postgres=# SELECT e.name, s.amount,
+  CASE
+    WHEN s.amount > 1500 THEN 'High Sale'
+    WHEN s.amount BETWEEN 800 AND 1500 THEN 'Medium Sale'
+    ELSE 'Low Sale'
+  END AS sale_category
+FROM employees e
+JOIN sales s ON e.id = s.employee_id;
+     name      | amount  | sale_category
+---------------+---------+---------------
+ Clara Davis   | 1200.00 | Medium Sale
+ Daniel Lee    |  800.00 | Medium Sale
+ Clara Davis   | 1500.00 | Medium Sale
+ Bob Smith     |  300.00 | Low Sale
+ Frank White   | 2100.00 | High Sale
+ Alice Johnson |  950.00 | Medium Sale
+ Ivy Adams     |  400.00 | Low Sale
+ Jack Miller   | 1700.00 | High Sale
+(8 строк)
+
+postgres=#

@@ -1,0 +1,253 @@
+Last login: Tue Oct 14 17:55:07 on ttys000
+admin@MacBook-Pro-Ulik ~ % psql -U postgres
+Пароль пользователя postgres:
+psql (17.6 (Homebrew))
+Введите "help", чтобы получить справку.
+
+postgres=# DROP TABLE IF EXISTS orders CASCADE;
+DROP TABLE IF EXISTS customers CASCADE;
+NOTICE:  table "orders" does not exist, skipping
+DROP TABLE
+NOTICE:  table "customers" does not exist, skipping
+DROP TABLE
+postgres=# CREATE TABLE customers (
+    customer_id SERIAL PRIMARY KEY,
+    name VARCHAR(100) NOT NULL,
+    email VARCHAR(100) UNIQUE
+);
+CREATE TABLE
+postgres=# CREATE TABLE orders (
+    order_id SERIAL PRIMARY KEY,
+    customer_id INT REFERENCES customers(customer_id),
+    order_date DATE,
+    total_amount DECIMAL(10, 2)
+);
+CREATE TABLE
+postgres=# INSERT INTO customers (name, email) VALUES
+('Alice', 'alice@gmail.com'),
+('Bob', 'bob@yahoo.com'),
+('Charlie', 'charlie@outlook.com');
+INSERT 0 3
+postgres=# INSERT INTO orders (customer_id, order_date, total_amount) VALUES
+(1, '2025-01-10', 250.50),
+(1, '2025-02-15', 300.00),
+(2, '2025-03-20', 120.75);
+INSERT 0 3
+postgres=# DROP TABLE IF EXISTS order_items CASCADE;
+DROP TABLE IF EXISTS products CASCADE;
+NOTICE:  table "order_items" does not exist, skipping
+DROP TABLE
+NOTICE:  table "products" does not exist, skipping
+DROP TABLE
+postgres=# CREATE TABLE products (
+    product_id SERIAL PRIMARY KEY,
+    product_name VARCHAR(100) NOT NULL,
+    price DECIMAL(10, 2)
+);
+CREATE TABLE
+postgres=# CREATE TABLE order_items (
+    order_item_id SERIAL PRIMARY KEY,
+    order_id INT REFERENCES orders(order_id),
+    product_id INT REFERENCES products(product_id),
+    quantity INT CHECK (quantity > 0)
+);
+CREATE TABLE
+postgres=# INSERT INTO products (product_name, price) VALUES
+('Laptop', 1200.00),
+('Mouse', 25.00),
+('Keyboard', 45.00);
+INSERT 0 3
+postgres=# INSERT INTO order_items (order_id, product_id, quantity) VALUES
+(1, 1, 1),  -- Alice купила 1 Laptop
+(1, 2, 2),  -- Alice купила 2 Mouse
+(2, 3, 1),  -- Alice купила 1 Keyboard
+(3, 2, 3);  -- Bob купил 3 Mouse
+INSERT 0 4
+postgres=# DROP TABLE IF EXISTS employees CASCADE;
+
+CREATE TABLE employees (
+    employee_id SERIAL PRIMARY KEY,
+    name VARCHAR(100),
+    manager_id INT REFERENCES employees(employee_id)
+);
+NOTICE:  drop cascades to constraint sales_employee_id_fkey on table sales
+DROP TABLE
+CREATE TABLE
+postgres=# INSERT INTO employees (name, manager_id) VALUES
+('Anna', NULL),       -- директор
+('Boris', 1),
+('Clara', 1),
+('David', 2);
+INSERT 0 4
+postgres=# DROP TABLE IF EXISTS enrollments CASCADE;
+DROP TABLE IF EXISTS students CASCADE;
+DROP TABLE IF EXISTS courses CASCADE;
+
+CREATE TABLE students (
+    student_id SERIAL PRIMARY KEY,
+    student_name VARCHAR(100)
+);
+
+CREATE TABLE courses (
+    course_id SERIAL PRIMARY KEY,
+    course_name VARCHAR(100)
+);
+
+CREATE TABLE enrollments (
+    enrollment_id SERIAL PRIMARY KEY,
+    student_id INT REFERENCES students(student_id),
+    course_id INT REFERENCES courses(course_id),
+    enrollment_date DATE,
+    grade VARCHAR(2)
+);
+DROP TABLE
+DROP TABLE
+DROP TABLE
+CREATE TABLE
+CREATE TABLE
+CREATE TABLE
+postgres=# INSERT INTO students (student_name) VALUES
+('Alice'),
+('Bob'),
+('Charlie');
+
+INSERT INTO courses (course_name) VALUES
+('Math'),
+('Physics'),
+('Art');
+
+INSERT INTO enrollments (student_id, course_id, enrollment_date, grade) VALUES
+(1, 1, '2025-01-15', 'A'),
+(1, 2, '2025-01-20', NULL),
+(2, 3, '2025-02-01', 'B');
+INSERT 0 3
+INSERT 0 3
+INSERT 0 3
+postgres=# SELECT c.name, c.email, o.order_date, o.total_amount
+FROM customers c
+INNER JOIN orders o ON c.customer_id = o.customer_id;
+ name  |      email      | order_date | total_amount
+-------+-----------------+------------+--------------
+ Alice | alice@gmail.com | 2025-01-10 |       250.50
+ Alice | alice@gmail.com | 2025-02-15 |       300.00
+ Bob   | bob@yahoo.com   | 2025-03-20 |       120.75
+(3 строки)
+
+postgres=# SELECT c.name, c.email, o.order_date
+FROM customers c
+LEFT JOIN orders o ON c.customer_id = o.customer_id;
+  name   |        email        | order_date
+---------+---------------------+------------
+ Alice   | alice@gmail.com     | 2025-01-10
+ Alice   | alice@gmail.com     | 2025-02-15
+ Bob     | bob@yahoo.com       | 2025-03-20
+ Charlie | charlie@outlook.com |
+(4 строки)
+
+postgres=# SELECT c.name, o.order_id
+FROM customers c
+RIGHT JOIN orders o ON c.customer_id = o.customer_id;
+ name  | order_id
+-------+----------
+ Alice |        1
+ Alice |        2
+ Bob   |        3
+(3 строки)
+
+postgres=# SELECT c.name, o.order_id
+FROM customers c
+FULL OUTER JOIN orders o ON c.customer_id = o.customer_id;
+  name   | order_id
+---------+----------
+ Alice   |        1
+ Alice   |        2
+ Bob     |        3
+ Charlie |
+(4 строки)
+
+postgres=# SELECT c.name, p.product_name
+FROM customers c
+CROSS JOIN products p;
+  name   | product_name
+---------+--------------
+ Alice   | Laptop
+ Bob     | Laptop
+ Charlie | Laptop
+ Alice   | Mouse
+ Bob     | Mouse
+ Charlie | Mouse
+ Alice   | Keyboard
+ Bob     | Keyboard
+ Charlie | Keyboard
+(9 строк)
+
+postgres=# SELECT c.name, o.order_date, p.product_name, oi.quantity
+FROM customers c
+INNER JOIN orders o ON c.customer_id = o.customer_id
+INNER JOIN order_items oi ON o.order_id = oi.order_id
+INNER JOIN products p ON oi.product_id = p.product_id;
+ name  | order_date | product_name | quantity
+-------+------------+--------------+----------
+ Alice | 2025-01-10 | Laptop       |        1
+ Alice | 2025-01-10 | Mouse        |        2
+ Alice | 2025-02-15 | Keyboard     |        1
+ Bob   | 2025-03-20 | Mouse        |        3
+(4 строки)
+
+postgres=# SELECT e1.name AS employee, e2.name AS manager
+FROM employees e1
+LEFT JOIN employees e2 ON e1.manager_id = e2.employee_id;
+ employee | manager
+----------+---------
+ Anna     |
+ Boris    | Anna
+ Clara    | Anna
+ David    | Boris
+(4 строки)
+
+postgres=# SELECT c.name, o.order_date, o.total_amount
+FROM customers c
+JOIN orders o ON c.customer_id = o.customer_id
+WHERE o.order_date >= '2024-01-01'
+  AND o.total_amount > 100;
+ name  | order_date | total_amount
+-------+------------+--------------
+ Alice | 2025-01-10 |       250.50
+ Alice | 2025-02-15 |       300.00
+ Bob   | 2025-03-20 |       120.75
+(3 строки)
+
+postgres=# CREATE INDEX idx_orders_customer_id ON orders(customer_id);
+CREATE INDEX idx_order_items_order_id ON order_items(order_id);
+CREATE INDEX
+CREATE INDEX
+postgres=# SELECT c.name, o.order_date
+FROM customers c
+JOIN orders o ON c.customer_id = o.customer_id;
+ name  | order_date
+-------+------------
+ Alice | 2025-02-15
+ Alice | 2025-01-10
+ Bob   | 2025-03-20
+(3 строки)
+
+postgres=# SELECT s.student_name, c.course_name
+FROM students s
+JOIN enrollments e ON s.student_id = e.student_id
+JOIN courses c ON e.course_id = c.course_id;
+ student_name | course_name
+--------------+-------------
+ Alice        | Math
+ Alice        | Physics
+ Bob          | Art
+(3 строки)
+
+postgres=#
+SELECT s.student_name, c.course_name
+FROM students s
+JOIN courses c ON s.course_id = c.course_id;
+ERROR:  column s.course_id does not exist
+СТРОКА 3: JOIN courses c ON s.course_id = c.course_id;
+                            ^
+ПОДСКАЗКА:  Perhaps you meant to reference the column "c.course_id".
+postgres=#
